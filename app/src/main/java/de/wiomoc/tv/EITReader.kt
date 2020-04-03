@@ -12,11 +12,11 @@ import com.google.android.exoplayer2.util.TimestampAdjuster
 import java.lang.Exception
 import java.nio.charset.Charset
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlin.experimental.and
 
 data class EPGEvent(
+    val id: Short,
     val time: Date,
     val duration: Date,
     val name: String?,
@@ -164,7 +164,7 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
                     }
 
                     if (description!!.isEmpty()) description = null
-                    val event = EPGEvent(startTime, duration, name, shortDescription, description)
+                    val event = EPGEvent(eventId, startTime, duration, name, shortDescription, description)
                     discoveredEvents.add(eventId)
                     listener(event)
                     Log.d("EIT", "Event $eventId $event")
