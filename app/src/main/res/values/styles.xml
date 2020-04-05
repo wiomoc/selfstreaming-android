@@ -13,7 +13,7 @@
         <item name="windowNoTitle">false</item>
     </style>
 
-    <style name="PlayerTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="PlayerTheme" parent="Theme.AppCompat">
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 

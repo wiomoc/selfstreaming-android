@@ -1,6 +1,5 @@
 package de.wiomoc.tv
 
-import android.util.Log
 import android.util.SparseArray
 import com.google.android.exoplayer2.extractor.ExtractorOutput
 import com.google.android.exoplayer2.extractor.ts.SectionPayloadReader
@@ -18,13 +17,21 @@ import kotlin.experimental.and
 data class EPGEvent(
     val id: Short,
     val time: Date,
-    val duration: Date,
+    val duration: Long,
     val name: String?,
     val shortDescription: String?,
     val description: String?
-)
+) {
+    val isInPast: Boolean
+        get() = Date().after(Date(time.time + duration * 1000))
+}
 
-class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader {
+class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader {
+
+    interface EPGEventListener {
+        fun onNewEvent(event: EPGEvent)
+    }
+
     override fun init(
         timestampAdjuster: TimestampAdjuster?,
         extractorOutput: ExtractorOutput?,
@@ -80,9 +87,9 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
                     val startTimeSecond = data.readBcd()
                     val startTimeMinute = data.readBcd()
 
-                    // TODO Migrate to moderen datetypes
-                    val startTime =
-                        Date(
+                    // TODO Migrate to modern datetypes
+                    val startTimeUTC =
+                        Date.UTC(
                             startTimeYear,
                             startTimeMonth - 1,
                             startTimeDay,
@@ -90,12 +97,10 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
                             startTimeSecond,
                             startTimeMinute
                         )
-                    val durationHours = data.readBcd()
-                    val durationMinutes = data.readBcd()
-                    val durationSeconds = data.readBcd()
-                    val duration = Date(0, 0, 0, durationHours, durationMinutes, durationSeconds)
-
-                    //Log.d("EIT", "starttime $startTimeDate, duration $durationHours:$durationMinutes:$durationSeconds")
+                    val startTime = Date(startTimeUTC)
+                    val duration = data.readBcd() * 3600 +
+                            data.readBcd() * 60 +
+                            data.readBcd().toLong()
 
                     var descriptorsLength = data.readShort().toInt() and 0xFFF
                     remainingSectionLength -= descriptorsLength
@@ -157,7 +162,6 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
 
                              }*/
                             else -> {
-                                //println("${descriptorTag.toString(16)} $descriptorLength ${data.bytesLeft()}")
                                 data.skipBytes(descriptorLength)
                             }
                         }
@@ -166,9 +170,7 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
                     if (description!!.isEmpty()) description = null
                     val event = EPGEvent(eventId, startTime, duration, name, shortDescription, description)
                     discoveredEvents.add(eventId)
-                    listener(event)
-                    Log.d("EIT", "Event $eventId $event")
-
+                    listener.onNewEvent(event)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -176,7 +178,7 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
         }
     }
 
-    private inline fun ParsableByteArray.readBcd(): Int {
+    private fun ParsableByteArray.readBcd(): Int {
         val b = readUnsignedByte()
         return ((b ushr 4) and 0xF) * 10 + (b and 0xF)
     }
@@ -208,7 +210,7 @@ class /*Puny*/EITReader(val listener: (EPGEvent) -> Unit) : SectionPayloadReader
     }
 }
 
-fun TsExtractor.withEPGListener(listener: (EPGEvent) -> Unit): TsExtractor {
+fun TsExtractor.withEPGListener(listener: EITReader.EPGEventListener): TsExtractor {
     TsExtractor::class.java.getDeclaredField("tsPayloadReaders").let {
         it.isAccessible = true
         val tsPayloadReaders = it.get(this) as SparseArray<TsPayloadReader>
