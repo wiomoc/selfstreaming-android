@@ -24,6 +24,8 @@ data class EPGEvent(
 ) {
     val isInPast: Boolean
         get() = Date().after(Date(time.time + duration * 1000))
+    val isCurrently: Boolean
+        get() = Date().after(Date(time.time)) && Date().before(Date(time.time + duration * 1000))
 }
 
 class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader {

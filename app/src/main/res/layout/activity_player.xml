@@ -15,11 +15,22 @@
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:orientation="vertical">
-        <com.google.android.exoplayer2.ui.PlayerView
-                android:id="@+id/main_player"
+        <com.google.android.exoplayer2.ui.AspectRatioFrameLayout
+                android:id="@+id/main_player_container"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                app:use_controller="false"/>
+                android:layout_gravity="center_horizontal"
+                app:resize_mode="fit">
+            <SurfaceView
+                    android:id="@+id/main_player_surface"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            <de.wiomoc.tv.PlayerControlsView
+                    android:id="@+id/main_player_controls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"/>
+        </com.google.android.exoplayer2.ui.AspectRatioFrameLayout>
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/epg_list"
                 android:layout_width="match_parent"

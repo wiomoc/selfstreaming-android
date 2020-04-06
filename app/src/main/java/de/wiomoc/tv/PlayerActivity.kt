@@ -1,10 +1,10 @@
 package de.wiomoc.tv
 
-import android.app.ProgressDialog
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.*
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -16,8 +16,10 @@ import com.google.android.exoplayer2.extractor.ts.TsExtractor
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_player.*
+import java.util.*
 
 
 class PlayerActivity : AppCompatActivity() {
@@ -34,6 +36,8 @@ class PlayerActivity : AppCompatActivity() {
 
     inner class EPGRecyclerViewAdapter : RecyclerView.Adapter<EPGViewHolder>(), EITReader.EPGEventListener {
         private val events = mutableListOf<EPGEvent>()
+        var nextEvent: EPGEvent? = null
+        var nextEventCountDownTimer: CountDownTimer? = null
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             EPGViewHolder(LayoutInflater.from(this@PlayerActivity).inflate(R.layout.item_epg_event, parent, false))
@@ -56,12 +60,39 @@ class PlayerActivity : AppCompatActivity() {
                             right = middle
                         }
                     }
+                    if (left == 0 && events.isNotEmpty()) {
+                        scheduleNextEventUpdate(events[0])
+                    } else if (left == 1) {
+                        scheduleNextEventUpdate(event)
+                    }
                     events.add(left, event)
                     notifyItemInserted(left)
+                    if (event.isCurrently)
+                        main_player_controls.currentEvent = event
                 }
             }
         }
+
+        fun scheduleNextEventUpdate(nextEvent: EPGEvent) {
+            println("NEXT" + nextEvent.time)
+            nextEventCountDownTimer?.cancel()
+            val offset = nextEvent.time.time - Date().time
+            nextEventCountDownTimer = object : CountDownTimer(offset, offset) {
+                override fun onFinish() {
+                    println("Switch")
+                    events.removeAt(0)
+                    notifyItemRemoved(0)
+                    main_player_controls.currentEvent = events[0]
+                    if (events.size > 1)
+                        scheduleNextEventUpdate(events[1])
+                }
+
+                override fun onTick(p0: Long) {}
+            }.apply { start() }
+        }
     }
+
+    lateinit var player: SimpleExoPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
 
         val rendererFactory = DefaultRenderersFactory(this)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-        val player = SimpleExoPlayer.Builder(this, rendererFactory).build();
+        player = SimpleExoPlayer.Builder(this, rendererFactory).build();
         val dataSourceFactory = DefaultDataSourceFactory(
             this,
             Util.getUserAgent(this, "selfnet.tv,android")
@@ -104,27 +135,49 @@ class PlayerActivity : AppCompatActivity() {
         player.prepare(videoSource);
 
         player.addListener(object : Player.EventListener {
+            var snackbar: Snackbar? = null
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 if (playbackState == Player.STATE_READY) {
                     player_progress.visibility = View.GONE
+                    snackbar?.dismiss()
                 }
             }
 
             override fun onPlayerError(error: ExoPlaybackException) {
-                Snackbar.make(findViewById(android.R.id.content), error.message!!, Snackbar.LENGTH_LONG).show()
+                snackbar =
+                    Snackbar.make(findViewById(android.R.id.content), error.message!!, Snackbar.LENGTH_INDEFINITE)
+                        .apply { show() }
             }
         })
 
-        main_player.player = player
-        main_player.keepScreenOn = true
+        // Default aspect ration 16:9
+        main_player_container.setAspectRatio(16f / 9f)
+        player.addVideoListener(object : VideoListener {
+            override fun onVideoSizeChanged(
+                width: Int,
+                height: Int,
+                unappliedRotationDegrees: Int,
+                pixelWidthHeightRatio: Float
+            ) {
+                main_player_container.setAspectRatio((width * pixelWidthHeightRatio) / height)
+            }
+        })
+
+        player.videoComponent!!.setVideoSurfaceView(main_player_surface)
+        main_player_surface.keepScreenOn = true
+        // main_player.setErrorMessageProvider { Pair.create(1, "Something went wrong :(") }
         // val debugView = TextView(this)
         // main_player.overlayFrameLayout!!.addView(debugView)
         // DebugTextViewHelper(player, debugView).start()
+
+        main_player_controls.setOnExitFullscreenListener {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
     }
 
     override fun onStop() {
         super.onStop()
-        main_player.player?.stop()
+        player.stop()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
