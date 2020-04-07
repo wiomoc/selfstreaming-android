@@ -5,5 +5,9 @@
           android:title="Fullscreen"
           android:icon="@drawable/ic_fullscreen"
           app:showAsAction="always"/>
+    <item android:id="@+id/enter_pip"
+          android:title="Picture in Picture"
+          android:icon="@drawable/ic_picture_in_picture"
+          app:showAsAction="always"/>
 
 </menu>

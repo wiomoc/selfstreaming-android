@@ -1,23 +1,29 @@
 package de.wiomoc.tv
 
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
-import android.os.Bundle
-import android.os.CountDownTimer
+import android.os.*
 import android.view.*
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.Format.NO_VALUE
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.extractor.ExtractorsFactory
 import com.google.android.exoplayer2.extractor.ts.TsExtractor
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.source.TrackGroupArray
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
+import de.wiomoc.tv.service.formatTime
+import de.wiomoc.tv.service.getFriendlyDay
 import kotlinx.android.synthetic.main.activity_player.*
 import java.util.*
 
@@ -25,19 +31,22 @@ import java.util.*
 class PlayerActivity : AppCompatActivity() {
 
     class EPGViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val eventTimeTextView: TextView = view.findViewById(R.id.epg_event_time)
         private val eventNameTextView: TextView = view.findViewById(R.id.epg_event_name)
+        private val eventTimeTextView: TextView = view.findViewById(R.id.epg_event_time)
+        private val eventDayTextView: TextView = view.findViewById(R.id.epg_event_day)
+        private val eventDescriptionTextView: TextView = view.findViewById(R.id.epg_event_description)
 
         fun applyEvent(event: EPGEvent) {
-            eventTimeTextView.text = event.time.toString()
+            eventTimeTextView.text = formatTime(event.time)
+            eventDayTextView.text = getFriendlyDay(event.time)
             eventNameTextView.text = event.name
+            eventDescriptionTextView.text = (event.description ?: event.shortDescription)
         }
     }
 
     inner class EPGRecyclerViewAdapter : RecyclerView.Adapter<EPGViewHolder>(), EITReader.EPGEventListener {
         private val events = mutableListOf<EPGEvent>()
-        var nextEvent: EPGEvent? = null
-        var nextEventCountDownTimer: CountDownTimer? = null
+        var nextEventCountDownHandler = Handler(Looper.getMainLooper())
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             EPGViewHolder(LayoutInflater.from(this@PlayerActivity).inflate(R.layout.item_epg_event, parent, false))
@@ -69,26 +78,24 @@ class PlayerActivity : AppCompatActivity() {
                     notifyItemInserted(left)
                     if (event.isCurrently)
                         main_player_controls.currentEvent = event
+                    // TODO Refactor
+                    epg_list.layoutManager?.smoothScrollToPosition(epg_list, RecyclerView.State(), 0)
                 }
             }
         }
 
-        fun scheduleNextEventUpdate(nextEvent: EPGEvent) {
+        private fun scheduleNextEventUpdate(nextEvent: EPGEvent) {
             println("NEXT" + nextEvent.time)
-            nextEventCountDownTimer?.cancel()
+            val messageId = 42
+            nextEventCountDownHandler.removeCallbacksAndMessages(messageId)
             val offset = nextEvent.time.time - Date().time
-            nextEventCountDownTimer = object : CountDownTimer(offset, offset) {
-                override fun onFinish() {
-                    println("Switch")
-                    events.removeAt(0)
-                    notifyItemRemoved(0)
-                    main_player_controls.currentEvent = events[0]
-                    if (events.size > 1)
-                        scheduleNextEventUpdate(events[1])
-                }
-
-                override fun onTick(p0: Long) {}
-            }.apply { start() }
+            nextEventCountDownHandler.postDelayed({
+                events.removeAt(0)
+                notifyItemRemoved(0)
+                main_player_controls.currentEvent = events[0]
+                if (events.size > 1)
+                    scheduleNextEventUpdate(events[1])
+            }, messageId, offset)
         }
     }
 
@@ -137,9 +144,14 @@ class PlayerActivity : AppCompatActivity() {
         player.addListener(object : Player.EventListener {
             var snackbar: Snackbar? = null
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if (playbackState == Player.STATE_READY) {
-                    player_progress.visibility = View.GONE
-                    snackbar?.dismiss()
+                when (playbackState) {
+                    Player.STATE_READY -> {
+                        player_progress.visibility = View.GONE
+                        snackbar?.dismiss()
+                    }
+                    Player.STATE_BUFFERING -> player_progress.visibility = View.VISIBLE
+                    else -> {
+                    }
                 }
             }
 
@@ -147,6 +159,16 @@ class PlayerActivity : AppCompatActivity() {
                 snackbar =
                     Snackbar.make(findViewById(android.R.id.content), error.message!!, Snackbar.LENGTH_INDEFINITE)
                         .apply { show() }
+            }
+
+            override fun onTracksChanged(trackGroups: TrackGroupArray, trackSelections: TrackSelectionArray) {
+                val isRadio =
+                    trackSelections.all.all { it?.selectedFormat?.channelCount != NO_VALUE } // Only audio channels -> radio
+                if (isRadio) {
+                    main_player_radio_only.visibility = View.VISIBLE
+                    main_player_surface.visibility = View.GONE
+                    main_player_container.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
+                }
             }
         })
 
@@ -173,21 +195,36 @@ class PlayerActivity : AppCompatActivity() {
         main_player_controls.setOnExitFullscreenListener {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
+
+        main_player_surface.setOnTouchListener { view, motionEvent ->
+            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                main_player_controls.toggleVisibility()
+                true
+            } else
+                false
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        player.stop()
+    override fun onDestroy() {
+        super.onDestroy()
+        player.release()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.activity_player, menu)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            menu.findItem(R.id.enter_pip).isVisible = false
+        }
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.enter_fullscreen -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            R.id.enter_pip -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                enterPictureInPictureMode()
+                epg_list.visibility = View.GONE
+            }
             android.R.id.home -> finish()
             else -> return false
         }

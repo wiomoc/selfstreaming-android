@@ -2,6 +2,9 @@ package de.wiomoc.tv
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +12,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import de.wiomoc.tv.service.formatTime
 import java.util.*
 
 class PlayerControlsView @JvmOverloads constructor(
@@ -21,18 +25,38 @@ class PlayerControlsView @JvmOverloads constructor(
     private val endTimeTextView: TextView = view.findViewById(R.id.player_controls_end_time)
     private val progress: ProgressBar = view.findViewById(R.id.player_controls_progress)
     private val exitFullscreenButton: ImageView = view.findViewById(R.id.player_controls_exit_full_screen)
+    private val autoHideHandler = Handler(Looper.getMainLooper())
+    private val autoHideHandlerToken = 10
+
 
     init {
         onConfigurationChanged(resources.configuration)
+        startAutoHideTimer(5000)
+    }
+
+    fun toggleVisibility(autoHide: Boolean = true) {
+        autoHideHandler.removeCallbacksAndMessages(autoHideHandlerToken)
+        isVisible = !isVisible
+        if (isVisible && autoHide) {
+            startAutoHideTimer(3000)
+        }
+    }
+
+    private fun startAutoHideTimer(timeoutMS: Int) {
+        autoHideHandler.postAtTime({
+            isVisible = false
+        }, autoHideHandlerToken, SystemClock.uptimeMillis() + timeoutMS)
     }
 
     var isVisible: Boolean = true
         set(value) {
             if (value) {
                 visibility = View.VISIBLE
-                updateProgress()
+                view.animate().setDuration(300).alpha(1.0f)
             } else {
-                visibility = View.GONE
+                animate().setDuration(300).alpha(0.0f).withEndAction {
+                    visibility = View.GONE
+                }
             }
             field = value
         }
@@ -41,9 +65,8 @@ class PlayerControlsView @JvmOverloads constructor(
         set(value) {
             field = value!!
             updateProgress()
-            startTimeTextView.text = String.format("%02d:%02d", value.time.hours, value.time.minutes)
-            val endTimeDate = Date(value.time.time + value.duration * 1000)
-            endTimeTextView.text = String.format("%02d:%02d", endTimeDate.hours, endTimeDate.minutes)
+            startTimeTextView.text = formatTime(value.time)
+            endTimeTextView.text = formatTime(Date(value.time.time + value.duration * 1000))
         }
 
     private fun updateProgress() {
