@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import de.wiomoc.tv.service.formatTime
+import de.wiomoc.tv.video.EPGEvent
 import java.util.*
 
 class PlayerControlsView @JvmOverloads constructor(
@@ -51,6 +52,7 @@ class PlayerControlsView @JvmOverloads constructor(
     var isVisible: Boolean = true
         set(value) {
             if (value) {
+                updateProgress()
                 visibility = View.VISIBLE
                 view.animate().setDuration(300).alpha(1.0f)
             } else {

@@ -47,5 +47,7 @@
             android:id="@+id/player_controls_exit_full_screen"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingStart="5dp"/>
+            android:paddingStart="5dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

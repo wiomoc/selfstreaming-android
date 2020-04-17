@@ -1,4 +1,4 @@
-package de.wiomoc.tv
+package de.wiomoc.tv.video
 
 import android.util.SparseArray
 import com.google.android.exoplayer2.extractor.ExtractorOutput
@@ -119,31 +119,30 @@ class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader 
 
                         when (descriptorTag) {
                             0x4d -> {
-                                val langCode = data.readEITString(3)
-
+                                // val langCode = data.readEITString(3)
+                                data.skipBytes(3)
                                 val nameLength = data.readUnsignedByte()
                                 name = data.readEITString(nameLength)
 
                                 val shortDescriptionLength = data.readUnsignedByte()
-                                shortDescription =
-                                    data.readEITString(shortDescriptionLength)
-                                //   Log.d("EIT", "SMP: langcode $langCode name: $name text: $shortDescription ")
+                                shortDescription = data.readEITString(shortDescriptionLength)
                             }
                             0x4e -> { // extended event descriptor
                                 data.readUnsignedByte()
-                                val langCode = data.readEITString(3)
+                                // val langCode = data.readEITString(3)
+                                data.skipBytes(3)
                                 var itemsLengthRemaining = data.readUnsignedByte()
                                 while (itemsLengthRemaining > 0) {
                                     val itemDescriptionLength = data.readUnsignedByte()
-                                    val itemDescription = data.readEITString(itemDescriptionLength)
+                                    //val itemDescription = data.readEITString(itemDescriptionLength)
+                                    data.skipBytes(itemDescriptionLength)
 
                                     val itemLength = data.readUnsignedByte()
-                                    val item = data.readEITString(itemLength)
+                                    //val item = data.readEITString(itemLength)
+                                    data.skipBytes(itemLength)
                                     itemsLengthRemaining -= 2
                                     itemsLengthRemaining -= itemDescriptionLength
                                     itemsLengthRemaining -= itemLength
-
-                                    //Log.d("EIT", "item $itemDescription ; $item ")
                                 }
 
                                 val textLength = data.readUnsignedByte()
@@ -170,7 +169,14 @@ class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader 
                     }
 
                     if (description!!.isEmpty()) description = null
-                    val event = EPGEvent(eventId, startTime, duration, name, shortDescription, description)
+                    val event = EPGEvent(
+                        eventId,
+                        startTime,
+                        duration,
+                        name,
+                        shortDescription,
+                        description
+                    )
                     discoveredEvents.add(eventId)
                     listener.onNewEvent(event)
                 } catch (e: Exception) {

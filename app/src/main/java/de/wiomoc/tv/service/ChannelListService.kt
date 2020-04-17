@@ -21,6 +21,7 @@ interface IChannelListService {
 object ChannelListService : IChannelListService by
 Retrofit.Builder()
     .baseUrl("http://selfnet.tv/sap/")
+    .client(tvOkHttpClient)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
     .create(IChannelListService::class.java);

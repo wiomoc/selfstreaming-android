@@ -5,13 +5,6 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-    <ProgressBar
-            android:id="@+id/player_progress"
-            android:indeterminate="true"
-            android:layout_gravity="center"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
     <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="match_parent"
@@ -21,7 +14,8 @@
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:layout_gravity="center_horizontal"
-                app:resize_mode="fit">
+                app:resize_mode="fit"
+                tools:layout_height="300dp">
             <SurfaceView
                     android:id="@+id/main_player_surface"
                     android:layout_width="match_parent"
@@ -32,6 +26,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:visibility="gone"/>
+            <ProgressBar
+                    android:id="@+id/player_progress"
+                    android:indeterminate="true"
+                    android:layout_gravity="center"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
             <de.wiomoc.tv.PlayerControlsView
                     android:id="@+id/main_player_controls"
                     android:layout_width="match_parent"
