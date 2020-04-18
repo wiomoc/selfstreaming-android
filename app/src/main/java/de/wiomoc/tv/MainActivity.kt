@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         val channelsAdapter = ChannelsAdapter()
 
         var snackbar: Snackbar? = null
-        viewModel.filteredChannels.observe(this, Observer {
+        viewModel.filteredChannelsResponse.observe(this, Observer {
             if (it == null) return@Observer
             when {
                 it.isSuccess -> {
@@ -120,10 +120,6 @@ class MainActivity : AppCompatActivity() {
         channel_refresh.setOnRefreshListener {
             viewModel.loadChannels(false)
         }
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

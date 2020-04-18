@@ -10,7 +10,7 @@ import retrofit2.Response
 class ChannelListViewModel : ViewModel() {
     val search = MutableLiveData<String>()
     val isLoading = MutableLiveData<Boolean>()
-    private val rawResponse: MutableLiveData<Result<List<Channel>>?> = MutableLiveData()
+    private val allChannelsResponse: MutableLiveData<Result<List<Channel>>?> = MutableLiveData()
 
     init {
         loadChannels()
@@ -20,29 +20,27 @@ class ChannelListViewModel : ViewModel() {
         isLoading.value = showLoading
         ChannelListService.getChannels().enqueue(object : Callback<List<Channel>> {
             override fun onFailure(call: Call<List<Channel>>, t: Throwable) {
-                rawResponse.value = Result.failure(t)
+                allChannelsResponse.value = Result.failure(t)
                 isLoading.value = false
             }
 
             override fun onResponse(call: Call<List<Channel>>, response: Response<List<Channel>>) {
-                rawResponse.value = Result.success(response.body()!!)
+                allChannelsResponse.value = Result.success(response.body()!!)
                 isLoading.value = false
             }
         })
     }
 
-    val filteredChannels by lazy {
-        merge(rawResponse, search) { rawResponse, search ->
-            val tmp = rawResponse // XXX
-            if (tmp == null) return@merge null
-            tmp.map { allChannels ->
-                if (search != null) {
-                    allChannels.filter {
-                        val needle = search.toLowerCase()
-                        it.name.toLowerCase().indexOf(needle) != -1
-                    }
-                } else {
+    val filteredChannelsResponse by lazy {
+        merge(allChannelsResponse, search) { rawResponse, search ->
+            if (rawResponse == null) return@merge null
+            rawResponse.map { allChannels ->
+                if (search.isNullOrEmpty()) {
                     allChannels
+                } else {
+                    allChannels.filter {
+                        it.name.contains(search, ignoreCase = true)
+                    }
                 }
             }
         }

@@ -58,7 +58,6 @@ class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader 
             data.readUnsignedByte() // section_last_section_number
             data.readUnsignedByte() // last_table_id*/
             data.skipBytes(11)
-            //Log.d("EIT", Base64.encodeToString(data.data.sliceArray(data.position..data.data.size - 1), 0))
 
             var remainingSectionLength = sectionLength - 13
             while (remainingSectionLength > 4) {
@@ -158,9 +157,6 @@ class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader 
                                  val langCode = data.readString(3, Charset.forName("ISO-8859-1"))
 
                                  val eventText = data.readString(descriptorLength - 6, Charset.forName("ISO-8859-1"))
-
-                                 Log.d("EIT", "COM langcode $langCode text: $eventText ")
-
                              }*/
                             else -> {
                                 data.skipBytes(descriptorLength)
