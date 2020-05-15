@@ -1,4 +1,4 @@
-package de.wiomoc.tv.video
+package de.selfnet.tv.video
 
 import android.util.SparseArray
 import com.google.android.exoplayer2.extractor.ExtractorOutput

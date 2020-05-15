@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">TV</string>
+    <string name="app_name" translatable="false">Selfnet TV</string>
+    <string name="channel_list_loading_error">Error during loading. Make sure that you are connected to Selfnet</string>
+    <string name="channel_list_loading_retry">Retry</string>
 </resources>

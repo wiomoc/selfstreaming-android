@@ -1,4 +1,4 @@
-package de.wiomoc.tv
+package de.selfnet.tv
 
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -23,17 +23,17 @@ import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.*
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.DebugTextViewHelper
-import com.google.android.exoplayer2.util.EventLogger
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
-import de.wiomoc.tv.service.formatTime
-import de.wiomoc.tv.service.getFriendlyDay
-import de.wiomoc.tv.service.tvOkHttpClient
-import de.wiomoc.tv.video.AC3PreferringTrackSelector
-import de.wiomoc.tv.video.EITReader
-import de.wiomoc.tv.video.EPGEvent
-import de.wiomoc.tv.video.withEPGListener
+import de.selfnet.tv.service.formatTime
+import de.selfnet.tv.service.getFriendlyDay
+import de.selfnet.tv.service.tvOkHttpClient
+import de.selfnet.tv.video.AC3PreferringTrackSelector
+import de.selfnet.tv.video.EITReader
+import de.selfnet.tv.video.EPGEvent
+import de.selfnet.tv.video.withEPGListener
+import de.wiomoc.tv.R
 import kotlinx.android.synthetic.main.activity_player.*
 import java.util.*
 
@@ -59,7 +59,10 @@ class PlayerActivity : AppCompatActivity() {
         var nextEventCountDownHandler = Handler(Looper.getMainLooper())
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-            EPGViewHolder(LayoutInflater.from(this@PlayerActivity).inflate(R.layout.item_epg_event, parent, false))
+            EPGViewHolder(
+                LayoutInflater.from(this@PlayerActivity)
+                    .inflate(R.layout.item_epg_event, parent, false)
+            )
 
         override fun getItemCount() = events.size
 
@@ -133,10 +136,10 @@ class PlayerActivity : AppCompatActivity() {
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(
-                        3000,
-                        6000,
-                        3000,
-                        3000
+                        2000,
+                        4000,
+                        2000,
+                        2000
                     )
                     .createDefaultLoadControl()
             ).build();

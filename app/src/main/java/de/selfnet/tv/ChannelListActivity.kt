@@ -1,4 +1,4 @@
-package de.wiomoc.tv
+package de.selfnet.tv
 
 import android.content.Intent
 import android.os.Bundle
@@ -16,10 +16,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import de.wiomoc.tv.service.Channel
+import de.selfnet.tv.service.Channel
+import de.wiomoc.tv.R
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class ChannelListActivity : AppCompatActivity() {
     lateinit var viewModel: ChannelListViewModel
     lateinit var searchView: SearchView
 
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         private var channels = emptyList<Channel>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ChannelViewHolder(
-                LayoutInflater.from(this@MainActivity)
+                LayoutInflater.from(this@ChannelListActivity)
                     .inflate(R.layout.item_channel, parent, false)
             )
 
@@ -73,7 +74,6 @@ class MainActivity : AppCompatActivity() {
             channels = newChannels
             result.dispatchUpdatesTo(this)
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,10 +96,10 @@ class MainActivity : AppCompatActivity() {
                 else -> {
                     snackbar = Snackbar.make(
                         findViewById(android.R.id.content),
-                        "Error",
+                        R.string.channel_list_loading_error,
                         Snackbar.LENGTH_INDEFINITE
                     ).apply {
-                        setAction("Retry") {
+                        setAction(R.string.channel_list_loading_retry) {
                             viewModel.loadChannels()
                         }
                         show()
@@ -114,7 +114,12 @@ class MainActivity : AppCompatActivity() {
         channel_list.adapter = channelsAdapter
 
         val divider = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
-        divider.setDrawable(ContextCompat.getDrawable(this, R.drawable.recycler_view_divider)!!)
+        divider.setDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.recycler_view_divider
+            )!!
+        )
         channel_list.addItemDecoration(divider)
 
         channel_refresh.setOnRefreshListener {

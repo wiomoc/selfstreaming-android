@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_list_loading_retry">Nochmal\nversuchen</string>
+    <string name="channel_list_loading_error">Fehler beim Laden. Stelle sicher, dass du mit Selfnet verbunden bist
+    </string>
+</resources>

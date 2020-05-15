@@ -1,4 +1,4 @@
-package de.wiomoc.tv.video
+package de.selfnet.tv.video
 
 import android.content.Context
 import android.util.Pair

@@ -11,7 +11,7 @@
             android:theme="@style/AppTheme"
             android:networkSecurityConfig="@xml/cleartext"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity"
+        <activity android:name="de.selfnet.tv.ChannelListActivity"
                   android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".PlayerActivity"
+        <activity android:name="de.selfnet.tv.PlayerActivity"
                   android:theme="@style/PlayerTheme"
                   android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
                   android:supportsPictureInPicture="true">

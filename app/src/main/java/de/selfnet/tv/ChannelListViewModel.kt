@@ -1,11 +1,12 @@
-package de.wiomoc.tv
+package de.selfnet.tv
 
 import androidx.lifecycle.*
-import de.wiomoc.tv.service.Channel
-import de.wiomoc.tv.service.ChannelListService
+import de.selfnet.tv.service.Channel
+import de.selfnet.tv.service.ChannelListService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.RuntimeException
 
 class ChannelListViewModel : ViewModel() {
     val search = MutableLiveData<String>()
@@ -25,7 +26,11 @@ class ChannelListViewModel : ViewModel() {
             }
 
             override fun onResponse(call: Call<List<Channel>>, response: Response<List<Channel>>) {
-                allChannelsResponse.value = Result.success(response.body()!!)
+                allChannelsResponse.value = if (response.isSuccessful) {
+                    Result.success(response.body()!!)
+                } else {
+                    Result.failure(RuntimeException(response.message()))
+                }
                 isLoading.value = false
             }
         })

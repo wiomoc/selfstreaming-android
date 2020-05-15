@@ -1,4 +1,4 @@
-package de.wiomoc.tv.service
+package de.selfnet.tv.service
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.Call

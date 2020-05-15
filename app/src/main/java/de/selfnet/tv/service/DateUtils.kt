@@ -1,4 +1,4 @@
-package de.wiomoc.tv.service
+package de.selfnet.tv.service
 
 import java.text.SimpleDateFormat
 import java.util.*

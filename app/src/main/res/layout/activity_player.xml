@@ -33,7 +33,7 @@
                     style="?android:attr/progressBarStyleLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
-            <de.wiomoc.tv.PlayerControlsView
+            <de.selfnet.tv.video.PlayerControlsView
                     android:id="@+id/main_player_controls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

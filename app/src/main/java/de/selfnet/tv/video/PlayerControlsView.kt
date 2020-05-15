@@ -1,4 +1,4 @@
-package de.wiomoc.tv
+package de.selfnet.tv.video
 
 import android.content.Context
 import android.content.res.Configuration
@@ -12,8 +12,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import de.wiomoc.tv.service.formatTime
-import de.wiomoc.tv.video.EPGEvent
+import de.selfnet.tv.service.formatTime
+import de.wiomoc.tv.R
 import java.util.*
 
 class PlayerControlsView @JvmOverloads constructor(
