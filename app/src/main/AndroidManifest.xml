@@ -11,7 +11,7 @@
             android:theme="@style/AppTheme"
             android:networkSecurityConfig="@xml/cleartext"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name="de.selfnet.tv.ChannelListActivity"
+        <activity android:name="de.selfnet.tv.MainActivity"
                   android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

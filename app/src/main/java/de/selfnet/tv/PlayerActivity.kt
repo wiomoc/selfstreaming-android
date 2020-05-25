@@ -32,7 +32,7 @@ import de.selfnet.tv.service.tvOkHttpClient
 import de.selfnet.tv.video.AC3PreferringTrackSelector
 import de.selfnet.tv.video.EITReader
 import de.selfnet.tv.video.EPGEvent
-import de.selfnet.tv.video.withEPGListener
+import de.selfnet.tv.video.withEPGReader
 import de.wiomoc.tv.R
 import kotlinx.android.synthetic.main.activity_player.*
 import java.util.*
@@ -155,7 +155,7 @@ class PlayerActivity : AppCompatActivity() {
 
         videoSource =
             ProgressiveMediaSource.Factory(dataSourceFactory, ExtractorsFactory {
-                arrayOf(TsExtractor().withEPGListener(epgAdapter))
+                arrayOf(TsExtractor().withEPGReader(epgAdapter))
             })
                 .createMediaSource(Uri.parse(url));
 

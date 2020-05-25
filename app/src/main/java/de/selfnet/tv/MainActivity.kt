@@ -2,10 +2,7 @@ package de.selfnet.tv
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,12 +12,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.android.material.snackbar.Snackbar
 import de.selfnet.tv.service.Channel
 import de.wiomoc.tv.R
 import kotlinx.android.synthetic.main.activity_main.*
 
-class ChannelListActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity() {
     lateinit var viewModel: ChannelListViewModel
     lateinit var searchView: SearchView
 
@@ -52,7 +51,7 @@ class ChannelListActivity : AppCompatActivity() {
         private var channels = emptyList<Channel>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ChannelViewHolder(
-                LayoutInflater.from(this@ChannelListActivity)
+                LayoutInflater.from(this@MainActivity)
                     .inflate(R.layout.item_channel, parent, false)
             )
 
@@ -140,6 +139,14 @@ class ChannelListActivity : AppCompatActivity() {
         })
 
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.action_info -> startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+            else -> return false;
+        }
+        return true;
     }
 
     override fun onBackPressed() {

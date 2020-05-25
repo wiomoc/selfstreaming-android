@@ -214,7 +214,7 @@ class /*Puny*/ EITReader(val listener: EPGEventListener) : SectionPayloadReader 
     }
 }
 
-fun TsExtractor.withEPGListener(listener: EITReader.EPGEventListener): TsExtractor {
+fun TsExtractor.withEPGReader(listener: EITReader.EPGEventListener): TsExtractor {
     TsExtractor::class.java.getDeclaredField("tsPayloadReaders").let {
         it.isAccessible = true
         val tsPayloadReaders = it.get(this) as SparseArray<TsPayloadReader>

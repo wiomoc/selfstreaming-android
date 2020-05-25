@@ -51,6 +51,7 @@ class PlayerControlsView @JvmOverloads constructor(
 
     var isVisible: Boolean = true
         set(value) {
+            field = value
             if (value) {
                 updateProgress()
                 visibility = View.VISIBLE
@@ -60,7 +61,6 @@ class PlayerControlsView @JvmOverloads constructor(
                     visibility = View.GONE
                 }
             }
-            field = value
         }
 
     var currentEvent: EPGEvent? = null
